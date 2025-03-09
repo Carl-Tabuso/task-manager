@@ -1,31 +1,36 @@
 import express from 'express';
-import { MongoClient, ServerApiVersion } from 'mongodb';
-import 'dotenv/config';
+import dotenv from 'dotenv';
+import dotenvExpand from 'dotenv-expand';
+import { connectDb } from './db/db-connection.js';
+import { tasks } from './routes/tasks.js';
+import path from 'node:path';
+import notFound from './middlewares/not-found.js';
 
-const app = express();
+dotenvExpand.expand(dotenv.config());
+
 const port = process.env.PORT;
+const url = process.env.URL;
 const conn = process.env.DB_CONNECTION;
+const app = express();
+const basePath = path.resolve(process.cwd());
+const routePrefix = '/api/v1/tasks';
 
-const mongoClient = new MongoClient(conn, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
+app.use(express.json());
+app.use(express.static(path.join(basePath, 'public')));
+app.use(routePrefix, tasks);
+app.use(notFound);
 
 const run = async () => {
     try {
-        await mongoClient.connect();
-        await mongoClient.db("Store").command({ ping: 1 });
-        console.log("Pinged your deployment. You successfully connected to MongoDB!");
+        await connectDb(conn);
         app.listen(port, (err) => {
-            console.log(`Server started and listening to port ${port}`);
+            console.log(
+                "%s:%s\n%s %s:%s%s", 
+                "Server started and listening to port", port, "Visit", url, port, routePrefix
+            );
         });
     } catch (err) {
         console.error(err);
-    } finally {
-        await mongoClient.close();
     }
 }
 

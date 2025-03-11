@@ -12,4 +12,4 @@ router.route('/:id')
     .patch(taskController.update)
     .delete(taskController.destroy);
 
-export { router as tasks };
+export const tasks = { router };

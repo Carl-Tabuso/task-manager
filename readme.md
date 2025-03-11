@@ -1,3 +1,3 @@
 ### Learning MongoDB
 
-- [ ] CRUD
+- [x] CRUD
